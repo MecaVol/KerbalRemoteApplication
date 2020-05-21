@@ -29,6 +29,7 @@ dependencies:
     sdk: flutter
 
   flutter_bloc: ^4.0.0
+  shared_preferences: '>=0.5.7+2 <2.0.0'
   web_socket_channel: ^1.1.0
   logger_flutter: ^0.7.1
   protobuf: ^1.0.1

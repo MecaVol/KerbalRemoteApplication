@@ -20,3 +20,5 @@ class GoodKerbalConnectionState extends KerbalConnectionState {
 
   String get identifier => _clientIdentifier;
 }
+
+class WaitingKerbalConnectionState extends KerbalConnectionState {}

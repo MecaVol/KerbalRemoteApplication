@@ -24,15 +24,16 @@ class KerbalConnectionBloc
   @override
   Stream<KerbalConnectionState> mapEventToState(
       KerbalConnectionEvent event) async* {
+    yield WaitingKerbalConnectionState();
     if (event is StartKerbalConnectionEvent) {
       String uriPath = "ws://" + event._url + ":" + event._port.toString() +
           "/?name=" + event._name;
       logD('Web Socket connection to: ' + uriPath);
       _channel = IOWebSocketChannel.connect(uriPath);
-
+      // todo: use the communicator!
       yield GoodKerbalConnectionState("identifier");
     } else if (event is StopKerbalConnectionEvent) {
-      _channel.sink.close();
+      if (_channel != null) _channel.sink.close();
       yield InitialKerbalConnectionState();
     }
   }
