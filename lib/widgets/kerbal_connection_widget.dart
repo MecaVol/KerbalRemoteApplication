@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kerbal_remote_application/blocs/kerbal_connection/kerbal_connection_bloc.dart';
 
@@ -11,7 +12,7 @@ class KerbalConnectionWidget extends StatefulWidget {
 class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
 
   TextEditingController _urlController = TextEditingController (
-    text: "localhost"
+    text: "127.0.0.1",
   );
 
   TextEditingController _portController = TextEditingController (
@@ -19,44 +20,63 @@ class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
   );
 
   TextEditingController _nameController = TextEditingController (
-    text: "Kerbal Remote"
+    text: "KRApp"
   );
+
+  @override
+  void dispose() {
+    _urlController.dispose();
+    _portController.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<KerbalConnectionBloc, KerbalConnectionState>(
       builder: (context, state) {
         return Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    controller: _urlController,
-                    textAlign: TextAlign.center,
-                  ),
-                ),),
-                Expanded(child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    controller: _portController,
-                    textAlign: TextAlign.center,
-                  ),
-                ),),
-                Expanded(child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    controller: _nameController,
-                    textAlign: TextAlign.center,
-                  ),
-                ),),
-              ],
-            ),
+            Expanded(child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _urlController,
+                textAlign: TextAlign.center,
+                onSubmitted: (String value) {
+                  setState(() {
+                    _urlController.text = value;
+                  });
+                },
+              ),
+            ),),
+            Expanded(child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _portController,
+                textAlign: TextAlign.center,
+                onSubmitted: (String value) {
+                  setState(() {
+                    _portController.text = value;
+                  });
+                },
+              ),
+            ),),
+            Expanded(child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _nameController,
+                textAlign: TextAlign.center,
+                onSubmitted: (String value) {
+                  setState(() {
+                    _nameController.text = value;
+                  });
+                },
+              ),
+            ),),
             Row(
               children: <Widget>[
                 Expanded(
-                  flex: 1,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: _ConnectionButton(
@@ -68,7 +88,6 @@ class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
                   ),
                 ),
                 Expanded(
-                  flex: 2,
                   child: _ConnectionStateWidget(state),
                 ),
               ],
@@ -89,7 +108,13 @@ class _ConnectionStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (_state is GoodKerbalConnectionState) {
-      return Icon(Icons.thumb_up, color: Colors.green,);
+      var state = _state as GoodKerbalConnectionState;
+      return Row(
+        children: <Widget>[
+          Icon(Icons.thumb_up, color: Colors.green,),
+          Text(state.identifier ?? 'ERROR'),
+        ],
+      );
     } else if (_state is InitialKerbalConnectionState) {
       return Icon(Icons.help, color: Colors.blue,);
     } else if (_state is ErrorKerbalConnectionState) {

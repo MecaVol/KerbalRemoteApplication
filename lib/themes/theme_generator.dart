@@ -5,6 +5,10 @@ class ThemeGenerator {
     return ThemeData(
       primarySwatch: Colors.red,
       visualDensity: VisualDensity.adaptivePlatformDensity,
+      // TextField stuff:
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(),
+      )
     );
   }
 }
