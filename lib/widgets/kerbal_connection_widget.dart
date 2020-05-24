@@ -1,14 +1,29 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kerbal_remote_application/blocs/kerbal_connection/kerbal_connection_bloc.dart';
 import 'package:kerbal_remote_application/blocs/shared_prefs/shared_prefs_bloc.dart';
 
-class KerbalConnectionWidget extends StatelessWidget {
+/// Widget responsible to connect to KSP. User to set IP, port and optionnally
+/// the name of the connection (to display in kRPC)
+///
+/// This widget uses 2 blocs, the [SharedPrefsBloc] for getting previous
+/// settings, and the [KrappConnBloc] for sending connection requests
+/// and receive the state of the connection.
+class KerbalConnectionWidget extends StatefulWidget {
 
-  final _urlController = TextEditingController();
-  final _portController = TextEditingController();
-  final _nameController = TextEditingController();
+  @override
+  _KerbalConnectionWidgetState createState() => _KerbalConnectionWidgetState();
+}
+
+class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
+  final _urlController = TextEditingController()..text = '127.0.0.1';
+  final _portController = TextEditingController()..text = '1000';
+  final _nameController = TextEditingController()..text = 'KRApp';
+
+  Timer timer;
 
   @override
   Widget build(BuildContext context) {
@@ -111,19 +126,81 @@ class KerbalConnectionWidget extends StatelessWidget {
           ),
         )
     );
-
     return widgets;
   }
 
   Widget _buildConnectionButton() {
-    return BlocBuilder<KerbalConnectionBloc, KerbalConnectionState>(
+    return BlocBuilder<KrappConnBloc, KrappConnState>(
       builder: (context, state) {
-        if (state is GoodKerbalConnectionState) {
+        // DISCONNECTED (initial status as well)
+        if (state is StatusKrappConnState &&
+            state.status == CONNECTION_STATUS.DISCONNECTED)
+        {
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: RaisedButton(
-              onPressed: () => BlocProvider.of<KerbalConnectionBloc>(context).add(
-                StopKerbalConnectionEvent()
+              onPressed: () => BlocProvider.of<KrappConnBloc>(context).add(
+                  ConnectKrappConnEvent(
+                      _urlController.text,
+                      int.parse(_portController.text ?? '0'),
+                      _nameController.text
+                  )
+              ),
+              child: Row(
+                children: <Widget>[
+                  Expanded(child: Text('CONNECT')),
+                  Icon(Icons.brightness_1, color: Colors.blue,),
+                ],
+              ),
+            ),
+          );
+
+        } else if (state is WaitingKrappConnState){
+          timer = Timer(Duration(seconds: 1), () {
+            BlocProvider.of<KrappConnBloc>(context).add(
+                StatusKrappConnEvent());
+          });
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: RaisedButton(
+              onPressed: () => null,
+              child: Row(
+                children: <Widget>[
+                  Expanded(child: Text('PLEASE WAIT...')),
+                  Icon(Icons.brightness_1, color: Colors.orange,),
+                ],
+              ),
+            ),
+          );
+        } else if (state is StatusKrappConnState &&
+                   state.status == CONNECTION_STATUS.ERROR)
+        {
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: RaisedButton(
+              onPressed: () => BlocProvider.of<KrappConnBloc>(context).add(
+                ConnectKrappConnEvent(
+                    _urlController.text,
+                    int.parse(_portController.text ?? '0'),
+                    _nameController.text
+                )
+              ),
+              child: Row(
+                children: <Widget>[
+                  Expanded(child: Text('CORRECT IT AND... CONNECT!')),
+                  Icon(Icons.brightness_1, color: Colors.red,),
+                ],
+              ),
+            ),
+          );
+        } else if (state is StatusKrappConnState &&
+                    state.status == CONNECTION_STATUS.CONNECTED)
+        {
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: RaisedButton(
+              onPressed: () => BlocProvider.of<KrappConnBloc>(context).add(
+                  DisconnectKrappConnEvent()
               ),
               child: Row(
                 children: <Widget>[
@@ -133,31 +210,16 @@ class KerbalConnectionWidget extends StatelessWidget {
               ),
             ),
           );
-        } else if (state is WaitingKerbalConnectionState){
+        } else { // We shouldn't reach here!
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: RaisedButton(
-              onPressed: () => BlocProvider.of<KerbalConnectionBloc>(context).add(
-                  StopKerbalConnectionEvent()
-              ),
-              child: Row(
-                children: <Widget>[
-                  Expanded(child: Text('PLEASE WAIT... OR CANCEL!')),
-                  Icon(Icons.brightness_1, color: Colors.orange,),
-                ],
-              ),
-            ),
-          );
-        } else {
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: RaisedButton(
-              onPressed: () => BlocProvider.of<KerbalConnectionBloc>(context).add(
-                  StartKerbalConnectionEvent(
-                    _urlController.text,
-                    int.parse(_portController.text),
-                    _nameController.text
-                  )
+              onPressed: () => BlocProvider.of<KrappConnBloc>(context).add(
+                ConnectKrappConnEvent(
+                  _urlController.text,
+                  int.parse(_portController.text ?? '0'),
+                  _nameController.text
+                )
               ),
               child: Row(
                 children: <Widget>[

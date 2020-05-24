@@ -1,24 +1,30 @@
 part of 'kerbal_connection_bloc.dart';
 
 @immutable
-abstract class KerbalConnectionState {}
+abstract class KrappConnState {}
 
-class InitialKerbalConnectionState extends KerbalConnectionState {}
+class WaitingKrappConnState extends KrappConnState {}
 
-class ErrorKerbalConnectionState extends KerbalConnectionState {
-  final _message;
+class ErrorKrappConnState extends KrappConnState {
+  final String _message;
 
-  ErrorKerbalConnectionState([this._message = 'Undefined error']) {
-    logE(_message);
+  ErrorKrappConnState([this._message = 'Undefined error']) {
+    logE('CONNECTION ERRROR: ' + _message);
   }
 }
 
-class GoodKerbalConnectionState extends KerbalConnectionState {
-  final String _clientIdentifier;
+class StatusKrappConnState extends KrappConnState {
+  final CONNECTION_STATUS _status;
 
-  GoodKerbalConnectionState(this._clientIdentifier);
+  CONNECTION_STATUS get status => _status;
 
-  String get identifier => _clientIdentifier;
+  StatusKrappConnState(this._status);
 }
 
-class WaitingKerbalConnectionState extends KerbalConnectionState {}
+class RpcResponseKrappConnState extends KrappConnState {
+  // todo: Response stuff
+}
+
+class StreamKrappConnState extends KrappConnState {
+  // todo: Stream stuff
+}

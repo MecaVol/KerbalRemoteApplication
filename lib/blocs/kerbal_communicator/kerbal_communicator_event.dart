@@ -1,18 +1,14 @@
 part of 'kerbal_communicator_bloc.dart';
 
 @immutable
-abstract class KerbalCommunicatorEvent {}
+abstract class KerbalComEvent {}
 
-class SetConnectionKerbalCommunicatorEvent extends KerbalCommunicatorEvent {
+class SetRPCKerbalComEvent extends KerbalComEvent {
   final StreamSink<dynamic> _dataSink;
+  final Stream<dynamic> _dataStream;
 
-  StreamSink<dynamic> get sink => _dataSink;
+  StreamSink<dynamic> get rpcSink => _dataSink;
+  Stream<dynamic> get rpcStream => _dataStream;
 
-  SetConnectionKerbalCommunicatorEvent(this._dataSink);
-}
-
-class RequestKerbalCommunicatorEvent extends KerbalCommunicatorEvent {
-  final KraRequest _request;
-
-  RequestKerbalCommunicatorEvent(this._request);
+  SetRPCKerbalComEvent(this._dataSink, this._dataStream);
 }

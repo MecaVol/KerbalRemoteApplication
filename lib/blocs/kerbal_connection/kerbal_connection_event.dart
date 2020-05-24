@@ -1,14 +1,23 @@
 part of 'kerbal_connection_bloc.dart';
 
 @immutable
-abstract class KerbalConnectionEvent {}
+abstract class KrappConnEvent {}
 
-class StartKerbalConnectionEvent extends KerbalConnectionEvent {
-  final String _url;
-  final int _port;
-  final String _name;
+class StatusKrappConnEvent extends KrappConnEvent {}
 
-  StartKerbalConnectionEvent(this._url, this._port, [this._name = "KRApp"]);
+class ConnectKrappConnEvent extends KrappConnEvent {
+
+  final String url;
+  final int port;
+  final String name;
+
+  ConnectKrappConnEvent(this.url, this.port, [this.name = "KRApp"]);
 }
 
-class StopKerbalConnectionEvent extends KerbalConnectionEvent {}
+class DisconnectKrappConnEvent extends KrappConnEvent {}
+
+class RpcRequestKrappConnEvent extends KrappConnEvent {
+  // todo: add Request data
+}
+
+class StreamSubscriptionKrappConnEvent extends KrappConnEvent {}

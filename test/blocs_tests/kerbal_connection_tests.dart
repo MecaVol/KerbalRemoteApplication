@@ -5,7 +5,7 @@ import 'package:kerbal_remote_application/blocs/kerbal_connection/kerbal_connect
 void main() {
   group('KerbalConnectionEvent tests', () {
     test('StartKerbalConnectionEvent test', () {
-      var connectionEvent = StartKerbalConnectionEvent(
+      var connectionEvent = ConnectKrappConnEvent(
           'myUrl', 1234, 'connectionName');
       expect(connectionEvent, isNotNull);
     });
