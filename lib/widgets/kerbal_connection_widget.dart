@@ -21,6 +21,7 @@ class KerbalConnectionWidget extends StatefulWidget {
 class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
   final _urlController = TextEditingController()..text = '127.0.0.1';
   final _portController = TextEditingController()..text = '1000';
+  final _streamController = TextEditingController()..text = '1001';
   final _nameController = TextEditingController()..text = 'KRApp';
 
   Timer timer;
@@ -114,6 +115,26 @@ class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
             children: <Widget>[
               Expanded(
                 flex: 1,
+                child: Text('STREAM:', textAlign: TextAlign.center,),
+              ),
+              Expanded(
+                flex: 2,
+                child: TextField(
+                  controller: _streamController,
+                ),
+              )
+            ],
+          ),
+        )
+    );
+
+    widgets.add(
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                flex: 1,
                 child: Text('NAME:', textAlign: TextAlign.center,),
               ),
               Expanded(
@@ -154,7 +175,7 @@ class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
               ),
             ),
           );
-
+        // Checking for any change on KrappConnBloc status every second
         } else if (state is WaitingKrappConnState){
           timer = Timer(Duration(seconds: 1), () {
             BlocProvider.of<KrappConnBloc>(context).add(
@@ -172,6 +193,7 @@ class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
               ),
             ),
           );
+        // In case of error
         } else if (state is StatusKrappConnState &&
                    state.status == CONNECTION_STATUS.ERROR)
         {
@@ -193,6 +215,7 @@ class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
               ),
             ),
           );
+        // If connection was successful
         } else if (state is StatusKrappConnState &&
                     state.status == CONNECTION_STATUS.CONNECTED)
         {
@@ -210,7 +233,8 @@ class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
               ),
             ),
           );
-        } else { // We shouldn't reach here!
+        // We shouldn't reach here!
+        } else {
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: RaisedButton(
