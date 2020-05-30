@@ -6,7 +6,7 @@ void main() {
   group('KerbalConnectionEvent tests', () {
     test('StartKerbalConnectionEvent test', () {
       var connectionEvent = ConnectKrappConnEvent(
-          'myUrl', 1234, 'connectionName');
+          'myUrl', 1234, 1235, 'connectionName');
       expect(connectionEvent, isNotNull);
     });
   });

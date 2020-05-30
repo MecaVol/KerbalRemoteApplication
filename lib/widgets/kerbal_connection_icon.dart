@@ -11,8 +11,7 @@ class KrappConnIcon extends StatelessWidget {
       },
       child: BlocBuilder<KrappConnBloc, KrappConnState>(
         builder: (context, state) {
-          if (state is StatusKrappConnState &&
-              state.status == CONNECTION_STATUS.CONNECTED) {
+          if (state is ConnectedKrappConnState) {
             return Icon(Icons.brightness_1, color:  Colors.green,);
           } else {
             return Icon(Icons.brightness_1, color:  Colors.red,);

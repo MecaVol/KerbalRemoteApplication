@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kerbal_remote_application/blocs/kerbal_connection/kerbal_connection_bloc.dart';
 import 'package:kerbal_remote_application/blocs/shared_prefs/shared_prefs_bloc.dart';
+import 'package:kerbal_remote_application/proto/encoded_messages.dart';
+import 'package:kerbal_remote_application/utils/logger.dart';
 
 /// Widget responsible to connect to KSP. User to set IP, port and optionnally
 /// the name of the connection (to display in kRPC)
@@ -19,12 +21,15 @@ class KerbalConnectionWidget extends StatefulWidget {
 }
 
 class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
-  final _urlController = TextEditingController()..text = '127.0.0.1';
-  final _portController = TextEditingController()..text = '1000';
-  final _streamController = TextEditingController()..text = '1001';
+  final _urlController = TextEditingController()..text = '192.168.100.134';
+  final _portController = TextEditingController()..text = '50000';
+  final _streamController = TextEditingController()..text = '50001';
   final _nameController = TextEditingController()..text = 'KRApp';
 
   Timer timer;
+  int timerCount = 0;
+
+  String _clientID;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +38,7 @@ class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
         if (state is LastIPs) {
           _urlController.text = state.ips.last;
         } else {
-          _urlController.text = "127.0.0.1";
+          _urlController.text = '192.168.100.21';
         }
       },
       child: BlocBuilder<SharedPrefsBloc, SharedPrefsState>(
@@ -57,7 +62,8 @@ class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
     var widgets = <Widget>[];
     widgets.addAll(_buildTextFieldList());
     widgets.add(_buildConnectionButton());
-    return Column(
+    widgets.add(_buildClientIDLabel());
+    return ListView(
       children: widgets,
     );
   }
@@ -151,110 +157,82 @@ class _KerbalConnectionWidgetState extends State<KerbalConnectionWidget> {
   }
 
   Widget _buildConnectionButton() {
-    return BlocBuilder<KrappConnBloc, KrappConnState>(
-      builder: (context, state) {
-        // DISCONNECTED (initial status as well)
-        if (state is StatusKrappConnState &&
-            state.status == CONNECTION_STATUS.DISCONNECTED)
-        {
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: RaisedButton(
-              onPressed: () => BlocProvider.of<KrappConnBloc>(context).add(
-                  ConnectKrappConnEvent(
-                      _urlController.text,
-                      int.parse(_portController.text ?? '0'),
-                      _nameController.text
-                  )
-              ),
-              child: Row(
-                children: <Widget>[
-                  Expanded(child: Text('CONNECT')),
-                  Icon(Icons.brightness_1, color: Colors.blue,),
-                ],
-              ),
-            ),
+    return BlocListener<KrappConnBloc, KrappConnState>(
+      listener: (_, state) {
+        // When state is 'CONNECTING...' make the RPC request for client ID,
+        // to make sure connection is working.
+        if (state is ConnectingKrappConnState) {
+          BlocProvider.of<KrappConnBloc>(context).add(
+            RpcRequestKrappConnEvent(EncodedMessages.getClientIDRequest())
           );
-        // Checking for any change on KrappConnBloc status every second
-        } else if (state is WaitingKrappConnState){
-          timer = Timer(Duration(seconds: 1), () {
-            BlocProvider.of<KrappConnBloc>(context).add(
-                StatusKrappConnEvent());
-          });
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: RaisedButton(
-              onPressed: () => null,
-              child: Row(
-                children: <Widget>[
-                  Expanded(child: Text('PLEASE WAIT...')),
-                  Icon(Icons.brightness_1, color: Colors.orange,),
-                ],
-              ),
-            ),
-          );
-        // In case of error
-        } else if (state is StatusKrappConnState &&
-                   state.status == CONNECTION_STATUS.ERROR)
-        {
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: RaisedButton(
-              onPressed: () => BlocProvider.of<KrappConnBloc>(context).add(
-                ConnectKrappConnEvent(
-                    _urlController.text,
-                    int.parse(_portController.text ?? '0'),
-                    _nameController.text
-                )
-              ),
-              child: Row(
-                children: <Widget>[
-                  Expanded(child: Text('CORRECT IT AND... CONNECT!')),
-                  Icon(Icons.brightness_1, color: Colors.red,),
-                ],
-              ),
-            ),
-          );
-        // If connection was successful
-        } else if (state is StatusKrappConnState &&
-                    state.status == CONNECTION_STATUS.CONNECTED)
-        {
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: RaisedButton(
-              onPressed: () => BlocProvider.of<KrappConnBloc>(context).add(
-                  DisconnectKrappConnEvent()
-              ),
-              child: Row(
-                children: <Widget>[
-                  Expanded(child: Text('DISCONNECT')),
-                  Icon(Icons.brightness_1, color: Colors.green,),
-                ],
-              ),
-            ),
-          );
-        // We shouldn't reach here!
-        } else {
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: RaisedButton(
-              onPressed: () => BlocProvider.of<KrappConnBloc>(context).add(
-                ConnectKrappConnEvent(
-                  _urlController.text,
-                  int.parse(_portController.text ?? '0'),
-                  _nameController.text
-                )
-              ),
-              child: Row(
-                children: <Widget>[
-                  Expanded(child: Text('CONNECT')),
-                  Icon(Icons.brightness_1, color: Colors.blue,),
-                ],
-              ),
-            ),
-          );
+        } else if (state is RpcResponseKrappConnState) {
+
         }
-      }
+      },
+      child: BlocBuilder<KrappConnBloc, KrappConnState>(
+        builder: (_, state) {
+
+          String textButton;
+          VoidCallback _pressCallback;
+
+          if (state is DisconnectedKrappConnState) {
+            textButton = 'CONNECT';
+            _pressCallback = () => BlocProvider.of<KrappConnBloc>(context).add(
+              ConnectKrappConnEvent(
+                _urlController.text,
+                int.parse(_portController.text),
+                int.parse(_streamController.text),
+                _nameController.text
+              )
+            );
+          } else if (state is ConnectingKrappConnState) {
+            textButton = 'CONNECTING...';
+            _pressCallback = null;
+
+          } else if (state is ConnectedKrappConnState ||
+              state is RpcResponseKrappConnState) {
+            textButton = 'DISCONNECT';
+            _pressCallback = () => BlocProvider.of<KrappConnBloc>(context).add(
+              DisconnectKrappConnEvent()
+            );
+          } else if (state is ErrorKrappConnState) {
+            textButton = 'ERROR! RESET?';
+            _pressCallback = () => BlocProvider.of<KrappConnBloc>(context).add(
+              DisconnectKrappConnEvent()
+            );
+          }
+
+          return RaisedButton(
+            onPressed: _pressCallback,
+            child: Text(textButton),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildClientIDLabel() {
+    return BlocListener<KrappConnBloc, KrappConnState>(
+      listener: (_, state) {
+        if (state is RpcResponseKrappConnState) {
+          logD(state.data.toString());
+        }
+      },
+      child: Container(
+        child: Row(
+          children: <Widget>[
+            // todo: adapt using theme
+            Expanded(child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text('Client ID: ', textScaleFactor: 1.5, textAlign: TextAlign.right,),
+            )),
+            Expanded(child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(_clientID ?? 'UNKNOWN', textScaleFactor: 1.5, textAlign: TextAlign.left,),
+            ),),
+          ],
+        ),
+      ),
     );
   }
 }
