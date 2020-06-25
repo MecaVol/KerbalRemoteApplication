@@ -2,11 +2,12 @@ import 'dart:typed_data';
 
 import 'package:kerbal_remote_application/utils/logger.dart';
 
-/// Class to handle data received from kRPC web sockets.
-///
-/// It handles stream errors form web sockets and received raw data of the
-/// protobuf.
+
 class KrappData {
+  /// Class to handle data received from kRPC web sockets.
+  ///
+  /// It handles stream errors form web sockets and received raw data of the
+  /// protobuf.
   final String _error;
   final Uint8List _data;
 

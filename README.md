@@ -1,6 +1,6 @@
 # kerbal_remote_application
 
-A remote app for messing around with KSP. Often referred as KRApp.
+Kerbal Remote Application is a remote app for messing around with KSP. Often referred as KrApp.
 
 ## UNDER HEAVY DEVELOPMENT (NOT WORKING YET!!!)
 
@@ -8,7 +8,7 @@ A remote app for messing around with KSP. Often referred as KRApp.
 
 1. Install the kRPC plugin in Kerbal Space Program
 
-2. Set up a server with Kerbal PC Ip addrress, and ports up to you
+2. Set up a server with Kerbal PC Ip address, and ports up to you
 
 3. In the App, set up the connection with the same values, and tap "CONNECT"
 
